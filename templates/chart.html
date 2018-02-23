@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Bar charts with Bokeh!</title>
+    <link href="http://cdn.pydata.org/bokeh/release/bokeh-0.12.5.min.css" rel="stylesheet">
+    <link href="http://cdn.pydata.org/bokeh/release/bokeh-widgets-0.12.0.min.css" rel="stylesheet">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.6.4/js/bootstrap-datepicker.js"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.6.4/css/bootstrap-datepicker.css" rel="stylesheet"/>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+    <link href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" rel="stylesheet"/>
+    {{ js_resources|indent(4)|safe }}
+    {{ css_resources|indent(4)|safe }}
+    <style>
+      h4 {text-align: center; margin-left:90px}
+      h1 {text-align: center;}
+      .yearBlock {display: inline-flex; margin-left: 20%}
+      .yearBlock p {margin-right: 10px; margin-top: 5px;}
+      .btn .btn-primary {margin-left: 10px;}
+    </style>
+
+  </head>
+  <body>
+    <div style="width: 100%; display: inline-block;">
+
+      <h1>Lego Data Analysis</h1>
+      <form action="/">
+        <div class="yearBlock"><span><p> Start Year: </p></span><input type="text" class="datepicker" id="minYear" name="startyear"/></div>
+        <div class="yearBlock"><span><p> End Year: </p></span><input type="text" class="datepicker" id="maxYear" name="endyear"/></div>
+        <button class="btn btn-primary" type="submit">Go</button>
+      </form>
+    </div>
+
+    <div style="width: 45%; display: inline-block;">
+
+      <h4>Avg Number of Parts Used By Year</h4>
+      {{ div_part_year |safe }}
+      {{ script_part_year |safe }}
+
+    </div>
+
+    <div style="width: 45%; display: inline-block; margin-left:40px">
+      <h4>Avg Number Of Parts Used By Theme</h4>
+      {{ div_part_theme |safe }}
+      {{ script_part_theme|safe }}
+    </div>
+
+    <div style="width: 45%; display: inline-block;">
+
+      <h4>Number Of Parts By Part Type</h4>
+      {{ div_part_type |safe }}
+      {{ script_part_type |safe }}
+
+    </div>
+
+    <div style="width: 45%; display: inline-block;">
+
+      <h4>Theme Composition By Part Category</h4>
+      {{ div_partCat_theme |safe }}
+      {{ script_partCat_theme |safe }}
+
+    </div>
+
+    <div style="width: 100%; display: inline-block;">
+
+      <h4>Set Color Composition By Year</h4>
+      {{ div_color_year |safe }}
+      {{ script_color_year |safe }}
+
+    </div>
+    <script>
+      $(".datepicker").datepicker({
+        format: "yyyy",
+        viewMode: "years",
+        minViewMode: "years"
+      });
+      $('#maxYear').datepicker({minDate : '2017-01-01'});
+    </script>
+  </body>
+</html>
