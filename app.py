@@ -20,6 +20,7 @@ DATA_DIR = 'datasets'
 combinedDatasets = None
 datasets = {}
 def loadDataSets():
+    # Function to load the datasets and create a combined set to work on
     print 'loading datasets'
     for f in os.listdir(DATA_DIR):
         if f.endswith('.csv'):
@@ -45,6 +46,7 @@ def loadDataSets():
 def plot_bar_stacked_chart(df, x_name, y_label, x_label, width, height,
                            useColsColr = False, createLegend = False,
                            createTooltip = True):
+    # Function to create stacked bar charts
     stackCol = list(df.columns.values)
     colors = map(lambda x: '#' + x.lower(), df.columns.values) if useColsColr else d3['Category20'][20]
     legends = [value(x) for x in stackCol] if createLegend else None
@@ -76,6 +78,7 @@ def plot_bar_stacked_chart(df, x_name, y_label, x_label, width, height,
     return plot
 
 def plot_bar_chart(df, x_name, y_name, y_label, x_label, width, height):
+    # Function to create bar charts
     df[x_name] = df[x_name].astype(str)
     plot = figure(x_range = df[x_name].values,
                   plot_width=width, plot_height=height, h_symmetry=False,
@@ -99,6 +102,7 @@ def plot_bar_chart(df, x_name, y_name, y_label, x_label, width, height):
     return plot
 
 def getTopNEntries(df, topN, x_name, y_name, final_agg = 'mean'):
+    #Filter and get the top N entry in a dataframe
     if df.shape[0] <= topN:
         return df
     lengthN = True
@@ -113,6 +117,7 @@ def plot_agg_bar(df_set, x_name, y_name, width=600, height=300,
                        orderType = True,
                        TopX = None, X_label_name = None, y_label_name = None,
                        agg = 'mean'):
+    # Function to create required aggregations and then create bar plots
     X_label_name = x_name if X_label_name is None else X_label_name
     y_label_name = y_name if y_label_name is None else y_label_name
     data = pd.DataFrame(df_set.groupby(x_name).agg({y_name: agg})).reset_index()
@@ -124,6 +129,7 @@ def plot_agg_bar(df_set, x_name, y_name, width=600, height=300,
 
 
 def combineFilter(datasets, year_range):
+    # function to apply the year filter
     return datasets['combinedDatasets'][(datasets['combinedDatasets'
            ].year >= year_range[0]) & (datasets['combinedDatasets'].year <= year_range[1])]
 
