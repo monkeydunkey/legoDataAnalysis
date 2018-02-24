@@ -25,23 +25,26 @@ def loadDataSets():
         if f.endswith('.csv'):
             datasets[f.replace('.csv', '')] = pd.read_csv(os.path.join(DATA_DIR, f))
 
-    setPartDf = pd.merge(pd.merge(pd.merge(pd.merge(datasets['sets'][['set_num', 'theme_id',
-                                                            'year', 'num_parts']],
-                                            datasets['inventories'][['set_num', 'id']],
-                                            on='set_num').rename(columns = {'id': 'inventory_id'}),
-                                  datasets['inventory_parts'][['inventory_id',
-                                                                'part_num',
-                                                                'quantity',
-                                                                'color_id']],
-                                  on = 'inventory_id'), datasets['colors'],
-                         left_on = 'color_id', right_on = 'id').drop(['id', 'name'], 1)
-                         , datasets['parts'][['part_cat_id', 'part_num']],
-                        on ='part_num')
-    setPartDf = pd.merge(setPartDf, datasets['part_categories'], left_on = 'part_cat_id', right_on = 'id').drop(['id'], 1).rename(columns = {'name': 'part_cat_name'})
-    datasets['combinedDatasets'] = pd.merge(setPartDf, datasets['themes'], left_on = 'theme_id', right_on = 'id')
+    setPartDf = pd.merge(pd.merge(pd.merge(pd.merge(datasets['sets'][['set_num',
+                         'theme_id', 'year', 'num_parts']], datasets['inventories'
+                         ][['set_num', 'id']], on='set_num'
+                         ).rename(columns={'id': 'inventory_id'}),
+                         datasets['inventory_parts'][['inventory_id', 'part_num',
+                         'quantity', 'color_id']], on='inventory_id'), datasets['colors'
+                         ], left_on='color_id', right_on='id').drop(['id', 'name'], 1),
+                         datasets['parts'][['part_cat_id', 'part_num']], on='part_num')
+    setPartDf = pd.merge(setPartDf, datasets['part_categories'],
+                         left_on = 'part_cat_id',
+                         right_on = 'id').drop(['id'], 1).rename(
+                         columns = {'name': 'part_cat_name'})
+    datasets['combinedDatasets'] = pd.merge(setPartDf, datasets['themes'],
+                                            left_on = 'theme_id',
+                                            right_on = 'id')
     print 'datasets loaded'
 
-def plot_bar_stacked_chart(df, x_name, y_label, x_label, width, height, useColsColr = False, createLegend = False):
+def plot_bar_stacked_chart(df, x_name, y_label, x_label, width, height,
+                           useColsColr = False, createLegend = False,
+                           createTooltip = True):
     stackCol = list(df.columns.values)
     colors = map(lambda x: '#' + x.lower(), df.columns.values) if useColsColr else d3['Category20'][20]
     legends = [value(x) for x in stackCol] if createLegend else None
@@ -52,7 +55,9 @@ def plot_bar_stacked_chart(df, x_name, y_label, x_label, width, height, useColsC
     source = ColumnDataSource(data=df)
     x_values = map(lambda x: str(x), df[x_name].values)
     plot = figure(x_range = x_values, plot_width=width, plot_height=height,
+                  h_symmetry=False, v_symmetry=False, responsive=True,
                   tools="pan,wheel_zoom,box_zoom,reset",
+                  toolbar_location="above",
                   min_border=0, outline_line_color="#666666")
 
     plot.vbar_stack(stackCol, x=x_name, width=0.5, color=colors, source=source,
@@ -66,7 +71,8 @@ def plot_bar_stacked_chart(df, x_name, y_label, x_label, width, height, useColsC
     plot.ygrid.grid_line_alpha = 0.1
     plot.xaxis.axis_label = x_label
     plot.xaxis.major_label_orientation = 1
-    plot.add_tools(HoverTool(tooltips=tooltipVals))
+    if createTooltip:
+        plot.add_tools(HoverTool(tooltips=tooltipVals))
     return plot
 
 def plot_bar_chart(df, x_name, y_name, y_label, x_label, width, height):
@@ -118,7 +124,8 @@ def plot_agg_bar(df_set, x_name, y_name, width=600, height=300,
 
 
 def combineFilter(datasets, year_range):
-    return datasets['combinedDatasets'][(datasets['combinedDatasets'].year >= year_range[0]) & (datasets['combinedDatasets'].year <= year_range[1])]
+    return datasets['combinedDatasets'][(datasets['combinedDatasets'
+           ].year >= year_range[0]) & (datasets['combinedDatasets'].year <= year_range[1])]
 
 @app.route("/")
 def chart():
@@ -149,7 +156,7 @@ def chart():
     script_part_type, div_part_type = components(plot_agg_bar(combineddf, 'part_cat_name', 'part_num',
                                                                 X_label_name = "Part Type",
                                                                 y_label_name = 'Part Count',
-                                                                agg = 'count', width=600, height=400))
+                                                                agg = 'count', width=600, height=600))
 
 
     #Part type composition of theme
@@ -160,7 +167,7 @@ def chart():
     ThemePartTypeCount = combineddf[(combineddf.name.isin(topThemes.name)) & (combineddf.part_cat_name.isin(topPartType.part_cat_name))]
     ThemePartTypeCount = ThemePartTypeCount.groupby(['name', 'part_cat_name'])['quantity'].sum().reset_index()
     ThemePartTypeCount_pivot = ThemePartTypeCount.pivot(index = 'name', values = 'quantity', columns = 'part_cat_name').fillna(0)
-    p = plot_bar_stacked_chart(ThemePartTypeCount_pivot, 'name', 'Colors', 'Year', 800, 500, createLegend=True)
+    p = plot_bar_stacked_chart(ThemePartTypeCount_pivot, 'name', 'Colors', 'Year', 600, 600, createLegend=True)
     p.legend.label_text_font_size = "5pt"
     p.legend.glyph_height= 5
     p.legend.glyph_width= 5
@@ -172,7 +179,7 @@ def chart():
     topColors = combineddf.groupby('rgb')['quantity'].sum().reset_index().sort_values(by='quantity', ascending=False).reset_index(drop=True)[:TopNColor]
     groupedData = combineddf[combineddf.rgb.isin(topColors.rgb)][['year', 'rgb', 'quantity']].groupby(['year', 'rgb']).quantity.sum().reset_index()
     pivot_data = groupedData.pivot(index = 'year', values = 'quantity', columns = 'rgb').fillna(0)
-    p = plot_bar_stacked_chart(pivot_data, 'year', 'Colors', 'Year', 1200, 300, useColsColr = True)
+    p = plot_bar_stacked_chart(pivot_data, 'year', 'Colors', 'Year', 800, 300, useColsColr = True, createTooltip = False)
     script_color_year, div_color_year = components(p)
 
 
